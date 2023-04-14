@@ -15,26 +15,50 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     let path_to_folder = env_args[1].trim();
     
-    if let Some(option) = env_args.get(2).map(|s| s.trim()) {
-        if option == "-d" {
-            match sort_to_folders_with_delete(path_to_folder) {
-                Ok(()) => return Ok(()),
-                Err(err) => return Err(err.into()),
+    let flag = env_args.get(2).map(|s| s.trim());
+
+    sort_to_folders(path_to_folder, flag)
+}
+
+fn sort_to_folders(path_to_folder: &str, flag: Option<&str>) -> Result<(), Box<dyn Error>> {
+    if let Some(flag) = flag {
+        if flag == "-d" {
+            if let Ok(files) = fs::read_dir(path_to_folder) {
+                for file in files {
+                    let file = file?;
+                    let file_path = file.path();
+                    let filename = file.file_name().to_str().unwrap().to_owned();
+                    let extension = match filename.split('.').last() {
+                        Some(ext) => ext,
+                        None => "unnamed",
+                    };
+
+                    let new_dir = format!("{}/{}", path_to_folder, extension);
+                    match fs::create_dir(&new_dir) {
+                        Ok(()) => (),
+                        Err(_err) => {
+                            return Err("Folder with name of filename extension already exists".into())
+                        }
+                    };
+
+                    let prev_file = fs::File::open(&file_path)?;
+                    let mut prev_file_reader = BufReader::new(&prev_file);
+
+                    let new_file = fs::File::create(format!("{}/{}", &new_dir, filename))?;
+                    let mut new_file_writer = BufWriter::new(new_file);
+
+                    let mut buffer: Vec<u8> = Vec::new();
+
+                    prev_file_reader.read_to_end(&mut buffer)?;
+
+                    new_file_writer.write_all(&buffer)?;
+
+                    remove_file(&file_path).unwrap();
+                }
+                return Ok(());
             }
-        };
-        println!("Args is incorrect");
-        println!("Usage:");
-        println!("little_sorter: <path/to/folder>");
-        return Ok(())
+        }
     }
-
-    match sort_to_folders(path_to_folder) {
-        Ok(()) => return Ok(()),
-        Err(err) => return Err(err.into()),
-    };
-}
-
-fn sort_to_folders(path_to_folder: &str) -> Result<(), Box<dyn Error>> {
     if let Ok(files) = fs::read_dir(path_to_folder) {
         for file in files {
             let file = file?;
@@ -65,7 +89,7 @@ fn sort_to_folders(path_to_folder: &str) -> Result<(), Box<dyn Error>> {
 
             new_file_writer.write_all(&buffer)?;
 
-            remove_file(&file_path).unwrap();
+            // remove_file(&file_path).unwrap();
         }
         return Ok(());
     }
@@ -73,39 +97,39 @@ fn sort_to_folders(path_to_folder: &str) -> Result<(), Box<dyn Error>> {
     Err("cannot find any files in folder".into())
 }
 
-fn sort_to_folders_with_delete(path_to_folder: &str) -> Result<(), Box<dyn Error>> {
-    if let Ok(files) = fs::read_dir(path_to_folder) {
-        for file in files {
-            let file = file?;
-            let file_path = file.path();
-            let filename = file.file_name().to_str().unwrap().to_owned();
-            let extension = match filename.split('.').last() {
-                Some(ext) => ext,
-                None => "unnamed",
-            };
+// fn sort_to_folders_with_delete(path_to_folder: &str) -> Result<(), Box<dyn Error>> {
+//     if let Ok(files) = fs::read_dir(path_to_folder) {
+//         for file in files {
+//             let file = file?;
+//             let file_path = file.path();
+//             let filename = file.file_name().to_str().unwrap().to_owned();
+//             let extension = match filename.split('.').last() {
+//                 Some(ext) => ext,
+//                 None => "unnamed",
+//             };
 
-            let new_dir = format!("{}/{}", path_to_folder, extension);
-            match fs::create_dir(&new_dir) {
-                Ok(()) => (),
-                Err(_err) => {
-                    return Err("Folder with name of filename extension already exists".into())
-                }
-            };
+//             let new_dir = format!("{}/{}", path_to_folder, extension);
+//             match fs::create_dir(&new_dir) {
+//                 Ok(()) => (),
+//                 Err(_err) => {
+//                     return Err("Folder with name of filename extension already exists".into())
+//                 }
+//             };
 
-            let prev_file = fs::File::open(&file_path)?;
-            let mut prev_file_reader = BufReader::new(&prev_file);
+//             let prev_file = fs::File::open(&file_path)?;
+//             let mut prev_file_reader = BufReader::new(&prev_file);
 
-            let new_file = fs::File::create(format!("{}/{}", &new_dir, filename))?;
-            let mut new_file_writer = BufWriter::new(new_file);
+//             let new_file = fs::File::create(format!("{}/{}", &new_dir, filename))?;
+//             let mut new_file_writer = BufWriter::new(new_file);
 
-            let mut buffer: Vec<u8> = Vec::new();
+//             let mut buffer: Vec<u8> = Vec::new();
 
-            prev_file_reader.read_to_end(&mut buffer)?;
+//             prev_file_reader.read_to_end(&mut buffer)?;
 
-            new_file_writer.write_all(&buffer)?;
-        }
-        return Ok(());
-    }
+//             new_file_writer.write_all(&buffer)?;
+//         }
+//         return Ok(());
+//     }
 
-    Err("cannot find any files in folder".into())
-}
+//     Err("cannot find any files in folder".into())
+// }
