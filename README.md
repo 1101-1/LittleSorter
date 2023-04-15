@@ -13,4 +13,6 @@ For example:
 
 
 ## NOTE:
-if you use `-d` flag, folders do not deleted after moving files. If you want to delete empty folders, you need to run programm again.
+MAKE SURE if you do not have files without extension!!! Then sorter return an error.
+
+if you use `-d` flag, folders do not deleted after moving files.

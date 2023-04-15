@@ -9,7 +9,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     if env_args.len() < 2 {
         println!("Usage:");
-        println!("little_sorter: <path/to/folder>");
+        println!("cargo run -- <path/to/folder> <flag(if is need)>");
         return Ok(());
     }
     
@@ -32,8 +32,8 @@ fn sort_folder(path: &Path, orig_path: &Path, flag: Option<&str>) -> Result<(), 
             let entry = entry?;
             let entry_path = entry.path();
             if entry_path.is_file() {
-                sort_file_to_folder(&entry_path, orig_path, flag).unwrap();
-                is_empty = false;
+                let result = sort_file_to_folder(&entry_path, orig_path, flag).unwrap();
+                is_empty = result;
             } else if entry_path.is_dir() {
                 sort_folder(&entry_path, orig_path, flag).unwrap();
                 is_empty = false;
@@ -49,12 +49,12 @@ fn sort_folder(path: &Path, orig_path: &Path, flag: Option<&str>) -> Result<(), 
     Ok(())
 }
 
-fn sort_file_to_folder(file_entry: &PathBuf, orig_path: &Path, flag: Option<&str>) -> io::Result<()> {
+fn sort_file_to_folder(file_entry: &PathBuf, orig_path: &Path, flag: Option<&str>) -> io::Result<bool> {
     let file_path = file_entry;
     let filename = file_entry.file_name().unwrap().to_str().unwrap().to_owned();
     let extension = match filename.split('.').last() {
         Some(ext) => ext,
-        None => "unnamed",
+        None => ".unnamed",
     };
 
     let new_dir = format!("{}/{}", orig_path.to_str().unwrap(), extension);
@@ -66,7 +66,7 @@ fn sort_file_to_folder(file_entry: &PathBuf, orig_path: &Path, flag: Option<&str
     let dest_file_path = Path::new(&new_dir).join(&filename);
 
     if dest_file_path.exists() {
-        return Ok(());
+        return Ok(false);
     }
     let mut prev_file_reader = BufReader::new(fs::File::open(&file_path)?);
     
@@ -86,6 +86,5 @@ fn sort_file_to_folder(file_entry: &PathBuf, orig_path: &Path, flag: Option<&str
             fs::remove_dir(&file_path).unwrap()
         }
     }
-    
-    Ok(())
+    Ok(true)
 }
