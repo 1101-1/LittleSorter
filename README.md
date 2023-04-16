@@ -15,4 +15,5 @@ For example:
 ## NOTE:
 MAKE SURE if you do not have files without extension!!! Then sorter return an error.
 
-if you use `-d` flag, folders do not deleted after moving files.
+if you use `-d` flag, folders will be deleted after sorting files.
+Keep it in mind.
