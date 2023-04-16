@@ -40,7 +40,7 @@ fn sort_folder(path: &Path, orig_path: &Path, flag: Option<&str>) -> Result<(), 
             }
         }
     } else {
-        return Err("THE FOLDER IS NOT A DIR".into())
+        return Err("THE link on folder IS NOT A DIR".into())
     }
     
     if is_empty && flag == Some("-d") {
@@ -85,7 +85,7 @@ fn sort_file_to_folder(file_entry: &PathBuf, orig_path: &Path, flag: Option<&str
     let mut prev_file_reader = BufReader::new(fs::File::open(&file_path)?);
 
     let new_file = File::create(format!("{}/{}", &new_dir, &new_filename))?;
-    println!("{:?}", new_file);
+   
     let mut new_file_writer = BufWriter::new(new_file);
 
     let mut buffer: Vec<u8> = Vec::new();
@@ -95,6 +95,6 @@ fn sort_file_to_folder(file_entry: &PathBuf, orig_path: &Path, flag: Option<&str
     if flag == Some("-d") {
         fs::remove_file(&file_path)?;
     }
-    println!("{new_dir}");
+    
     Ok(true)
 }
