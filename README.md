@@ -3,7 +3,7 @@
 A little sorter that sort all files to folders by it extension.
 
 ## USAGE 
-If you want to sort files without copy, you need to add `-d` CLI arg `flag`.
+If you want to sort files without copy, you need to add (BETA FEATURE!!!)`-d`(WORKING UNSTABLE) CLI arg `flag`.
 
 For example:
 
@@ -13,7 +13,5 @@ For example:
 
 
 ## NOTE:
-MAKE SURE if you do not have files without extension!!! Then sorter return an error.
-
-if you use `-d` flag, folders will be deleted after sorting files.
+if you use `-d` flag, folders will be deleted after sorting files(UNSTABLE. MAY NEED TO CALL SEVERAL TIMES). 
 Keep it in mind.

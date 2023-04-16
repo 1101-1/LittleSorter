@@ -4,6 +4,7 @@ use std::{
     fs::{self, File},
     io::{BufReader, BufWriter, Read, Write}, path::{Path, PathBuf}
 };
+
 fn main() -> Result<(), Box<dyn Error>> {
     let env_args: Vec<String> = env::args().collect();
 
@@ -46,6 +47,7 @@ fn sort_folder(path: &Path, orig_path: &Path, flag: Option<&str>) -> Result<(), 
     if is_empty && flag == Some("-d") {
         fs::remove_dir(&path)?;
     }
+
     Ok(())
 }
 
