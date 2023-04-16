@@ -64,11 +64,10 @@ fn sort_file_to_folder(file_entry: &PathBuf, orig_path: &Path, flag: Option<&str
     };
 
     if &extension.to_string() == &filename {
-        new_filename = format!("{}.unnamed", filename);
         extension = "unnamed"
     }
 
-    let new_dir = format!("{}/{}", orig_path.to_str().unwrap(), &extension);
+    let new_dir = orig_path.join(&extension);
     
     if !Path::new(&new_dir).exists() {
         match fs::create_dir(&new_dir) {
@@ -84,7 +83,7 @@ fn sort_file_to_folder(file_entry: &PathBuf, orig_path: &Path, flag: Option<&str
     
     let mut prev_file_reader = BufReader::new(fs::File::open(&file_path)?);
 
-    let new_file = File::create(format!("{}/{}", &new_dir, &new_filename))?;
+    let new_file = File::create(format!("{}/{}", &new_dir.to_str().unwrap(), &new_filename))?;
    
     let mut new_file_writer = BufWriter::new(new_file);
 
@@ -92,6 +91,7 @@ fn sort_file_to_folder(file_entry: &PathBuf, orig_path: &Path, flag: Option<&str
     prev_file_reader.read_to_end(&mut buffer)?;
 
     new_file_writer.write_all(&buffer)?;
+
     if flag == Some("-d") {
         fs::remove_file(&file_path)?;
     }
