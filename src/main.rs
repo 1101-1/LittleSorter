@@ -2,7 +2,7 @@ use std::{
     env,
     error::Error,
     fs::{self, File},
-    io::{BufReader, BufWriter, Read, Write, self}, path::{Path, PathBuf}
+    io::{BufReader, BufWriter, Read, Write}, path::{Path, PathBuf}
 };
 fn main() -> Result<(), Box<dyn Error>> {
     let env_args: Vec<String> = env::args().collect();
@@ -49,42 +49,52 @@ fn sort_folder(path: &Path, orig_path: &Path, flag: Option<&str>) -> Result<(), 
     Ok(())
 }
 
-fn sort_file_to_folder(file_entry: &PathBuf, orig_path: &Path, flag: Option<&str>) -> io::Result<bool> {
+fn sort_file_to_folder(file_entry: &PathBuf, orig_path: &Path, flag: Option<&str>) -> Result<bool, Box<dyn Error>> {
     let file_path = file_entry;
     let filename = file_entry.file_name().unwrap().to_str().unwrap().to_owned();
-    let extension = match filename.split('.').last() {
+    
+    let mut new_filename = filename.clone();
+
+    let mut extension = match filename.split('.').last() {
         Some(ext) => ext,
-        None => ".unnamed",
+        None => {
+            new_filename = format!("{}.unnamed", filename);
+            "unnamed"
+        },
     };
 
-    let new_dir = format!("{}/{}", orig_path.to_str().unwrap(), extension);
-
-    if !Path::new(&new_dir).exists() {
-        fs::create_dir(&new_dir)?;
+    if &extension.to_string() == &filename {
+        new_filename = format!("{}.unnamed", filename);
+        extension = "unnamed"
     }
 
-    let dest_file_path = Path::new(&new_dir).join(&filename);
+    let new_dir = format!("{}/{}", orig_path.to_str().unwrap(), &extension);
+    
+    if !Path::new(&new_dir).exists() {
+        match fs::create_dir(&new_dir) {
+            Ok(()) => (),
+            Err(err) => return Err(err.into())
+        };
+    }
+    let dest_file_path = Path::new(&new_dir).join(&new_filename);
 
     if dest_file_path.exists() {
         return Ok(false);
     }
-    let mut prev_file_reader = BufReader::new(fs::File::open(&file_path)?);
     
-    let new_file = File::create(format!("{}/{}", &new_dir, filename))?;
+    let mut prev_file_reader = BufReader::new(fs::File::open(&file_path)?);
 
+    let new_file = File::create(format!("{}/{}", &new_dir, &new_filename))?;
+    println!("{:?}", new_file);
     let mut new_file_writer = BufWriter::new(new_file);
 
     let mut buffer: Vec<u8> = Vec::new();
-
     prev_file_reader.read_to_end(&mut buffer)?;
 
     new_file_writer.write_all(&buffer)?;
-
     if flag == Some("-d") {
         fs::remove_file(&file_path)?;
-        if file_entry.iter().next().is_none() {
-            fs::remove_dir(&file_path).unwrap()
-        }
     }
+    println!("{new_dir}");
     Ok(true)
 }
